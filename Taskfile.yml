@@ -1,0 +1,22 @@
+version: '3'
+
+tasks:
+  build:
+    summary: Build the PicPress binary
+    cmds:
+      - make build
+
+  package:
+    summary: Build PicPress.app
+    cmds:
+      - make app
+
+  run:
+    summary: Run PicPress from source
+    cmds:
+      - make run
+
+  test:
+    summary: Run unit tests
+    cmds:
+      - make test

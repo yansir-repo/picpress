@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PicPress</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script type="module" src="/wails/runtime.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="titlebar" id="titlebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 8.5 12 4l8 4.5-8 4.5-8-4.5Z" fill="currentColor" opacity=".95"/>
+            <path d="M4 12.4 12 17l8-4.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
+            <path d="M4 16.2 12 20.8l8-4.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity=".3"/>
+          </svg>
+        </span>
+        <span class="brand-name">PicPress</span>
+        <span class="brand-tag">图片压缩</span>
+      </div>
+      <div class="titlebar-right">
+        <span class="privacy-pill"><span class="privacy-dot"></span>全程本地处理</span>
+      </div>
+    </header>
+
+    <main class="workspace" data-file-drop-target>
+      <section class="content" id="content">
+        <div class="content-head">
+          <div>
+            <h1 class="content-title">图片</h1>
+            <p class="content-sub" id="content-sub">拖入图片，立即自动压缩</p>
+          </div>
+          <div class="content-actions" id="content-actions" hidden>
+            <button class="ghost-btn" id="add-more-btn" type="button" title="添加图片 (⌘O)">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              添加
+            </button>
+            <button class="ghost-btn ghost-btn--danger" id="clear-btn" type="button" title="清空列表 (⌘K)">清空</button>
+          </div>
+        </div>
+
+        <div class="dropzone" id="dropzone" role="button" aria-label="拖入或选择图片">
+          <div class="dropzone-inner">
+            <div class="drop-art" aria-hidden="true">
+              <svg viewBox="0 0 220 170" fill="none">
+                <defs>
+                  <linearGradient id="sunset" x1="66" y1="45" x2="172" y2="142" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#FFC27D"/>
+                    <stop offset="1" stop-color="#FF6B3D"/>
+                  </linearGradient>
+                </defs>
+                <g transform="rotate(-7 110 88)">
+                  <rect x="43" y="31" width="134" height="108" rx="18" fill="#fff" stroke="#E4DED3"/>
+                </g>
+                <g transform="rotate(4 110 88)">
+                  <rect x="45" y="34" width="134" height="108" rx="18" fill="#FFFDFA" stroke="#E7DED0"/>
+                  <rect x="57" y="46" width="110" height="84" rx="11" fill="#FFF4E7"/>
+                  <circle cx="137" cy="68" r="9" fill="#FFB579"/>
+                  <path d="M57 119l30-34 20 22 14-14 26 26H57Z" fill="url(#sunset)"/>
+                </g>
+                <g stroke="#1C1B19" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".26">
+                  <path d="M20 74h16M12 88h16M28 102h8"/>
+                  <path d="M200 74h-16M208 88h-16M192 102h-8"/>
+                </g>
+              </svg>
+              <span class="drop-art-badge">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M8 2.8v8.4M4.8 8l3.2 3.2L11.2 8M3 13.2h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+            <h2 class="drop-title">把图片拖到这里</h2>
+            <p class="drop-sub">松手即自动压缩，支持一次拖入多张</p>
+            <button class="drop-btn" id="pick-btn" type="button">选择图片</button>
+            <p class="drop-formats">JPG · PNG · WebP · AVIF · HEIC · GIF</p>
+          </div>
+          <div class="dropzone-hover" aria-hidden="true">
+            <div class="hover-icon">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v11m0 0 4-4m-4 4-4-4M4 17.5v1A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5v-1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <p>松手即可压缩</p>
+          </div>
+        </div>
+
+        <div class="list-wrap" id="list-wrap" hidden>
+          <div class="list" id="list"></div>
+          <button class="add-strip" id="add-strip" type="button">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            拖入更多图片，或点击添加
+          </button>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="sidebar-scroll">
+          <div class="sidebar-head">
+            <div>
+              <h2 class="sidebar-title">压缩设置</h2>
+              <p class="sidebar-sub">调整后自动重新压缩</p>
+            </div>
+            <button class="reset-btn" id="reset-btn" type="button" title="恢复默认设置">重置</button>
+          </div>
+
+          <div class="field">
+            <div class="field-label">输出格式</div>
+            <div class="segmented" id="format-seg" role="group" aria-label="输出格式">
+              <button type="button" data-format="auto" class="is-active">智能</button>
+              <button type="button" data-format="jpeg">JPG</button>
+              <button type="button" data-format="png">PNG</button>
+              <button type="button" data-format="webp">WebP</button>
+              <button type="button" data-format="avif">AVIF</button>
+            </div>
+            <p class="field-hint" id="format-hint">自动从 JPG / WebP / PNG 中选出体积最小的结果</p>
+          </div>
+
+          <div class="field" id="quality-field">
+            <div class="field-row">
+              <div class="field-label">质量</div>
+              <div class="quality-value">
+                <span id="quality-number">82</span><span class="quality-unit">%</span>
+                <span class="quality-tag" id="quality-tag">推荐</span>
+              </div>
+            </div>
+            <input type="range" id="quality-range" class="range" min="10" max="100" step="1" value="82" aria-label="压缩质量" />
+            <div class="range-scale"><span>更小</span><span>更好</span></div>
+            <p class="field-hint" id="quality-hint" hidden>PNG 为无损格式，质量参数不生效</p>
+          </div>
+
+          <div class="field">
+            <div class="field-label">尺寸</div>
+            <div class="segmented segmented--three" id="resize-seg" role="group" aria-label="尺寸调整方式">
+              <button type="button" data-resize="none" class="is-active">原尺寸</button>
+              <button type="button" data-resize="longest">限制长边</button>
+              <button type="button" data-resize="percent">按比例</button>
+            </div>
+
+            <div class="resize-control" id="resize-longest" hidden>
+              <div class="number-row">
+                <input type="number" id="longest-input" class="number-input" min="32" max="20000" step="16" value="2560" aria-label="最大长边像素" />
+                <span class="number-unit">px</span>
+                <span class="number-note">短边等比缩放</span>
+              </div>
+              <div class="chips" id="longest-chips">
+                <button type="button" data-edge="1280">1280</button>
+                <button type="button" data-edge="1920">1920</button>
+                <button type="button" data-edge="2560">2560</button>
+                <button type="button" data-edge="3840">3840</button>
+              </div>
+            </div>
+
+            <div class="resize-control" id="resize-percent" hidden>
+              <div class="number-row">
+                <input type="range" id="percent-range" class="range" min="10" max="100" step="1" value="100" aria-label="缩放百分比" />
+                <span class="percent-value" id="percent-value">100%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+          <div class="summary" id="summary">
+            <div class="summary-top">
+              <span class="summary-label">总体积变化</span>
+              <span class="summary-badge" id="summary-badge" hidden></span>
+            </div>
+            <div class="summary-main">
+              <div class="summary-metric" id="summary-metric">—</div>
+              <div class="summary-detail" id="summary-detail">添加图片后显示压缩效果</div>
+            </div>
+            <div class="summary-bar"><span id="summary-bar-fill"></span></div>
+            <div class="summary-rows" id="summary-rows" hidden>
+              <div><span>原图</span><b id="sum-original">—</b></div>
+              <div><span>压缩后</span><b id="sum-output">—</b></div>
+            </div>
+            <button class="primary-btn" id="save-all-btn" type="button" disabled>
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2.8v7.4m0 0 3-3m-3 3-3-3M3 12.5h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              保存全部
+            </button>
+            <p class="summary-foot">图片只在本机处理，不会上传到任何服务器</p>
+          </div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="modal" id="compare-modal" hidden>
+    <div class="modal-backdrop" data-close-compare></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-label="压缩前后对比">
+      <header class="modal-head">
+        <div>
+          <h3>压缩前后对比</h3>
+          <p id="compare-sub"></p>
+        </div>
+        <button class="icon-btn icon-btn--large" data-close-compare type="button" aria-label="关闭对比">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+      <div class="compare-stage" id="compare-stage">
+        <img class="compare-img compare-img--after" id="compare-after" alt="压缩后" />
+        <div class="compare-before" id="compare-before">
+          <img class="compare-img" id="compare-before-img" alt="原图" />
+        </div>
+        <div class="compare-divider" id="compare-divider"><span></span></div>
+        <span class="compare-tag compare-tag--before">原图</span>
+        <span class="compare-tag compare-tag--after">压缩后</span>
+        <input type="range" min="0" max="100" value="50" step="0.1" class="compare-scrub" id="compare-range" aria-label="对比位置" />
+      </div>
+      <footer class="compare-foot">
+        <div class="compare-stat"><span>原图</span><b id="compare-original"></b></div>
+        <div class="compare-stat"><span>压缩后</span><b id="compare-output"></b></div>
+        <div class="compare-stat compare-stat--accent"><span>节省</span><b id="compare-saved"></b></div>
+        <button class="ghost-btn" id="compare-save" type="button">保存这张</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <template id="item-template">
+    <article class="item">
+      <div class="item-thumb"><img alt="" /></div>
+      <div class="item-info">
+        <div class="item-name-row">
+          <span class="item-name"></span>
+          <span class="format-chip"></span>
+        </div>
+        <div class="item-meta"></div>
+        <div class="item-status" hidden></div>
+      </div>
+      <div class="item-result">
+        <div class="result-line">
+          <span class="result-size"></span>
+          <span class="result-format"></span>
+        </div>
+        <div class="result-detail"></div>
+      </div>
+      <div class="item-savings" hidden></div>
+      <div class="item-actions">
+        <button class="icon-btn" data-action="compare" type="button" title="对比" aria-label="对比原图与压缩结果">
+          <svg viewBox="0 0 16 16" fill="none"><rect x="2.2" y="3.2" width="11.6" height="9.6" rx="2" stroke="currentColor" stroke-width="1.25"/><path d="M8 2v12" stroke="currentColor" stroke-width="1.25" stroke-dasharray="1.8 1.8"/></svg>
+        </button>
+        <button class="icon-btn" data-action="save" type="button" title="保存" aria-label="保存这张图片">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 2.8v7.4m0 0 3-3m-3 3-3-3M3 12.5h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="icon-btn icon-btn--muted" data-action="remove" type="button" title="移除" aria-label="从列表移除">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
