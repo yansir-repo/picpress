@@ -24,7 +24,7 @@ app: build
 run: build
 	./$(BIN)
 
-dev:
+dev: frontend-install
 	./scripts/dev.sh
 
 frontend-install:
@@ -36,11 +36,11 @@ frontend-build: frontend-install
 	touch $(FRONTEND)/dist/.gitkeep
 	pnpm --dir $(FRONTEND) build
 
-test:
+test: frontend-install
 	go test ./...
 	pnpm --dir $(FRONTEND) exec vp test run
 
-check:
+check: frontend-install
 	pnpm --dir $(FRONTEND) check
 	go vet ./...
 
