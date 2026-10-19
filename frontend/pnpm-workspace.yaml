@@ -1,0 +1,9 @@
+packages:
+  - .
+
+minimumReleaseAgeExclude:
+  - "@wailsio/runtime@3.0.0-beta.32"
+
+peerDependencyRules:
+  allowAny:
+    - vite

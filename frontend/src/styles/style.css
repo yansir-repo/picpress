@@ -42,8 +42,9 @@ body {
   overflow: hidden;
   background: var(--bg);
   color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB",
-    "Segoe UI", "Microsoft YaHei", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Segoe UI",
+    "Microsoft YaHei", sans-serif;
   font-size: 13px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -60,6 +61,10 @@ input {
 
 button {
   -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  height: 100%;
 }
 
 input {
@@ -84,8 +89,8 @@ svg {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: radial-gradient(1000px 380px at 12% -8%, #fffdf9 0%, rgba(255, 253, 249, 0) 70%),
-    var(--bg);
+  background:
+    radial-gradient(1000px 380px at 12% -8%, #fffdf9 0%, rgba(255, 253, 249, 0) 70%), var(--bg);
 }
 
 /* ---------- Title bar ---------- */
@@ -116,7 +121,9 @@ svg {
   place-items: center;
   color: #fff;
   background: linear-gradient(145deg, #ff8a57 0%, #f05a2a 55%, #e0451a 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 8px rgba(240, 90, 42, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 3px 8px rgba(240, 90, 42, 0.28);
 }
 
 .brand-mark svg {
@@ -261,7 +268,11 @@ svg {
   font-size: 11.5px;
   font-weight: 550;
   cursor: pointer;
-  transition: background 0.16s var(--ease), border-color 0.16s, color 0.16s, transform 0.16s;
+  transition:
+    background 0.16s var(--ease),
+    border-color 0.16s,
+    color 0.16s,
+    transform 0.16s;
 }
 
 .ghost-btn svg {
@@ -311,7 +322,10 @@ svg {
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, transform 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    transform 0.15s;
 }
 
 .icon-btn svg {
@@ -326,6 +340,16 @@ svg {
 
 .icon-btn:active {
   transform: scale(0.93);
+}
+
+.icon-btn:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.icon-btn:disabled:hover {
+  background: transparent;
+  color: var(--muted);
 }
 
 .icon-btn--muted:hover {
@@ -358,7 +382,11 @@ svg {
   padding: 28px;
   cursor: pointer;
   overflow: hidden;
-  transition: border-color 0.2s var(--ease), background 0.2s, box-shadow 0.2s, transform 0.2s;
+  transition:
+    border-color 0.2s var(--ease),
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
 }
 
 .dropzone:hover {
@@ -379,7 +407,9 @@ svg {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+  transition:
+    opacity 0.2s var(--ease),
+    transform 0.2s var(--ease);
 }
 
 .dropzone.is-dragging .dropzone-inner {
@@ -411,7 +441,9 @@ svg {
   place-items: center;
   color: #fff;
   background: linear-gradient(145deg, #ff8452, var(--accent));
-  box-shadow: 0 6px 14px rgba(240, 90, 42, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 6px 14px rgba(240, 90, 42, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .drop-art-badge svg {
@@ -444,7 +476,10 @@ svg {
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 6px 16px rgba(27, 26, 24, 0.18);
-  transition: transform 0.16s var(--ease), box-shadow 0.16s, background 0.16s;
+  transition:
+    transform 0.16s var(--ease),
+    box-shadow 0.16s,
+    background 0.16s;
 }
 
 .drop-btn:hover {
@@ -475,7 +510,9 @@ svg {
   opacity: 0;
   transform: scale(1.02);
   pointer-events: none;
-  transition: opacity 0.18s var(--ease), transform 0.18s var(--ease);
+  transition:
+    opacity 0.18s var(--ease),
+    transform 0.18s var(--ease);
 }
 
 .dropzone-hover p {
@@ -531,10 +568,13 @@ svg {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
-  transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
 }
 
-.item.is-new {
+.item {
   animation: cardIn 0.34s var(--ease) both;
 }
 
@@ -550,12 +590,17 @@ svg {
   border-radius: 11px;
   overflow: hidden;
   background-color: #f4f1eb;
-  background-image: linear-gradient(45deg, #ece8e0 25%, transparent 25%),
+  background-image:
+    linear-gradient(45deg, #ece8e0 25%, transparent 25%),
     linear-gradient(-45deg, #ece8e0 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #ece8e0 75%),
     linear-gradient(-45deg, transparent 75%, #ece8e0 75%);
   background-size: 12px 12px;
-  background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+  background-position:
+    0 0,
+    0 6px,
+    6px -6px,
+    -6px 0;
   border: 1px solid rgba(30, 25, 18, 0.06);
   flex: none;
 }
@@ -739,7 +784,10 @@ svg {
   color: var(--muted);
   font-size: 11.5px;
   cursor: pointer;
-  transition: border-color 0.16s, color 0.16s, background 0.16s;
+  transition:
+    border-color 0.16s,
+    color 0.16s,
+    background 0.16s;
 }
 
 .add-strip svg {
@@ -846,7 +894,11 @@ svg {
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.16s var(--ease), color 0.16s, box-shadow 0.16s, transform 0.16s;
+  transition:
+    background 0.16s var(--ease),
+    color 0.16s,
+    box-shadow 0.16s,
+    transform 0.16s;
 }
 
 .segmented button:hover {
@@ -856,7 +908,9 @@ svg {
 .segmented button.is-active {
   background: #fff;
   color: var(--ink);
-  box-shadow: 0 1px 2px rgba(28, 25, 20, 0.08), 0 2px 7px rgba(28, 25, 20, 0.05);
+  box-shadow:
+    0 1px 2px rgba(28, 25, 20, 0.08),
+    0 2px 7px rgba(28, 25, 20, 0.05);
 }
 
 .segmented button:active {
@@ -940,12 +994,18 @@ svg {
   border-radius: 50%;
   background: #fff;
   border: 1px solid rgba(28, 25, 20, 0.1);
-  box-shadow: 0 1px 4px rgba(28, 25, 20, 0.22), 0 0 0 0 rgba(240, 90, 42, 0);
-  transition: box-shadow 0.16s, transform 0.16s;
+  box-shadow:
+    0 1px 4px rgba(28, 25, 20, 0.22),
+    0 0 0 0 rgba(240, 90, 42, 0);
+  transition:
+    box-shadow 0.16s,
+    transform 0.16s;
 }
 
 .range:hover::-webkit-slider-thumb {
-  box-shadow: 0 1px 4px rgba(28, 25, 20, 0.22), 0 0 0 4px rgba(240, 90, 42, 0.1);
+  box-shadow:
+    0 1px 4px rgba(28, 25, 20, 0.22),
+    0 0 0 4px rgba(240, 90, 42, 0.1);
 }
 
 .range:active::-webkit-slider-thumb {
@@ -982,7 +1042,9 @@ svg {
   font-weight: 550;
   font-variant-numeric: tabular-nums;
   outline: none;
-  transition: border-color 0.16s, box-shadow 0.16s;
+  transition:
+    border-color 0.16s,
+    box-shadow 0.16s;
 }
 
 .number-input:focus {
@@ -1132,7 +1194,9 @@ svg {
   width: 0;
   border-radius: inherit;
   background: linear-gradient(90deg, #46b17a, #18794e);
-  transition: width 0.5s var(--ease), background 0.3s;
+  transition:
+    width 0.5s var(--ease),
+    background 0.3s;
 }
 
 .summary-bar span.is-bigger {
@@ -1171,7 +1235,11 @@ svg {
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 8px 18px rgba(27, 26, 24, 0.16);
-  transition: transform 0.16s var(--ease), box-shadow 0.16s, opacity 0.16s, background 0.16s;
+  transition:
+    transform 0.16s var(--ease),
+    box-shadow 0.16s,
+    opacity 0.16s,
+    background 0.16s;
 }
 
 .primary-btn svg {
@@ -1266,12 +1334,17 @@ svg {
   border-radius: 12px;
   overflow: hidden;
   background-color: #e9e4da;
-  background-image: linear-gradient(45deg, #ddd7cc 25%, transparent 25%),
+  background-image:
+    linear-gradient(45deg, #ddd7cc 25%, transparent 25%),
     linear-gradient(-45deg, #ddd7cc 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #ddd7cc 75%),
     linear-gradient(-45deg, transparent 75%, #ddd7cc 75%);
   background-size: 18px 18px;
-  background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+  background-position:
+    0 0,
+    0 9px,
+    9px -9px,
+    -9px 0;
   box-shadow: inset 0 0 0 1px rgba(28, 25, 20, 0.08);
   touch-action: none;
 }
@@ -1300,7 +1373,9 @@ svg {
   left: var(--pos, 50%);
   width: 1.5px;
   background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.18), 0 0 18px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.18),
+    0 0 18px rgba(0, 0, 0, 0.18);
   pointer-events: none;
   transform: translateX(-0.75px);
 }

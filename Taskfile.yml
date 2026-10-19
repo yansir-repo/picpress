@@ -2,7 +2,7 @@ version: '3'
 
 tasks:
   build:
-    summary: Build the PicPress binary
+    summary: Build the PicPress binary (including the frontend)
     cmds:
       - make build
 
@@ -12,11 +12,11 @@ tasks:
       - make app
 
   run:
-    summary: Run PicPress from source
+    summary: Run PicPress with the Vite dev server
     cmds:
-      - make run
+      - make dev
 
   test:
-    summary: Run unit tests
+    summary: Run Go and frontend tests
     cmds:
       - make test
