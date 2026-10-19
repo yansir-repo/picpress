@@ -49,9 +49,12 @@ make dev
 # 生产构建：先 vp build，再编译 Go 二进制
 make build
 
-# 打包 .app（ad-hoc 签名）
+# 打包 .app（ad-hoc 签名；本机架构）
 make app
 open bin/PicPress.app
+
+# 打包 universal .app（arm64 + x86_64，发布用）
+make app-universal
 
 # 测试 / 静态检查
 make test    # Go test + vp test run
@@ -63,6 +66,17 @@ make check   # vp check（格式化 + lint + 类型检查）+ go vet
 > `wails3` CLI 只用于生成 bindings 和图标，不参与日常构建。
 >
 > Vite+ 1.3 把 `vite` alias 到 `@voidzero-dev/vite-plus-core`，`@vitejs/plugin-react` 会报 peer 版本警告；这是 Vite+ 的已知情况，不影响构建。项目在 `frontend/pnpm-workspace.yaml` 里用 `peerDependencyRules.allowAny` 抑制了这条噪音。
+
+## CI 与自动发布
+
+- **CI**（`.github/workflows/ci.yml`）：PR / push 到 `main` 时运行前端 `vp check`、`vp test run`、`vp build`，以及 Go `test` / `vet`；macOS job 会实际构建 universal `.app` 并上传 artifact。
+- **Release**（`.github/workflows/release.yml`）：当 `main` 上的 Go / 前端 / 打包相关代码发生变化时自动执行：
+  1. 把 `VERSION` 的 patch 位 +1（`1.0.0` → `1.0.1`，即 +0.01）；
+  2. 构建 arm64 + x86_64 的 universal app；
+  3. 提交版本变更并打 `vX.Y.Z` tag；
+  4. 创建 GitHub Release，附带 `PicPress-X.Y.Z-macOS-universal.zip`。
+
+版本源是根目录的 `VERSION`；`scripts/bump-version.py` 同时同步 `build/darwin/Info.plist`。只改 README / docs，或 release 自己产生的版本提交，不会再次触发 release。
 
 ## 前端结构
 
