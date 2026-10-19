@@ -10,14 +10,14 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
-// The frontend is plain ES modules served straight from the embedded
-// filesystem, so no Node toolchain is needed to build the app.
+// The Vite build output is embedded into the binary. During development
+// Wails proxies to FRONTEND_DEVSERVER_URL instead of using these assets.
 //
-//go:embed all:frontend
+//go:embed all:frontend/dist
 var embeddedFrontend embed.FS
 
 func main() {
-	frontend, err := fs.Sub(embeddedFrontend, "frontend")
+	frontend, err := fs.Sub(embeddedFrontend, "frontend/dist")
 	if err != nil {
 		log.Fatal(err)
 	}

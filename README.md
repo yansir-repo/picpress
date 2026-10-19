@@ -1,6 +1,6 @@
 # PicPress
 
-> 拖进来，就变小。一个用 **Go + Wails v3** 写的本地图片压缩桌面应用。
+> 拖进来，就变小。一个用 **Go + Wails v3 + React** 写的本地图片压缩桌面应用。
 
 ![PicPress 截图](docs/screenshot.png)
 
@@ -25,26 +25,94 @@
 | `⌘K` | 清空列表 |
 | `Esc` | 关闭对比弹窗 |
 
+## 技术栈
+
+| 层 | 技术 |
+| --- | --- |
+| 桌面壳 / 图像处理 | Go 1.26、Wails v3 beta.32、纯 Go 编解码器（WebP / AVIF / HEIC） |
+| UI | React 19、TypeScript 7 |
+| 构建 | pnpm 12、Vite+ 1.3（`vp dev / check / test / build`） |
+| 状态 | Effect 4.0.5 + `@effect/atom-react`（Atom） |
+| 调用层 | Wails 生成的 TypeScript bindings，用 Effect 包装为类型化异步操作 |
+
 ## 构建与运行
 
-要求：macOS 12+、Go 1.26+、Xcode Command Line Tools。
+要求：macOS 12+、Go 1.26+、Node 24+、pnpm 12+、Xcode Command Line Tools。
 
 ```bash
-# 开发运行（直接编译并启动）
-make run
+# 安装前端依赖
+pnpm --dir frontend install
 
-# 构建 .app（ad-hoc 签名）
+# 开发：Vite+ dev server + Wails（支持 HMR）
+make dev
+
+# 生产构建：先 vp build，再编译 Go 二进制
+make build
+
+# 打包 .app（ad-hoc 签名；本机架构）
 make app
 open bin/PicPress.app
 
-# 只编译二进制
-make build
+# 打包 universal .app（arm64 + x86_64，发布用）
+make app-universal
 
-# 单元测试
-make test
+# 测试 / 静态检查
+make test    # Go test + vp test run
+make check   # vp check（格式化 + lint + 类型检查）+ go vet
 ```
 
-> 项目没有 Node 构建步骤：前端是原生 ES Module，直接通过 `go:embed` 打进二进制；Wails 的 JS 运行时由内置资源服务 `/wails/runtime.js` 提供。
+`make dev` 会启动 `vp dev`（127.0.0.1:9245），然后设置 `FRONTEND_DEVSERVER_URL` 运行 Go 应用；Wails 会把前端请求代理到 Vite，修改 React 代码即可热更新。
+
+> `wails3` CLI 只用于生成 bindings 和图标，不参与日常构建。
+>
+> Vite+ 1.3 把 `vite` alias 到 `@voidzero-dev/vite-plus-core`，`@vitejs/plugin-react` 会报 peer 版本警告；这是 Vite+ 的已知情况，不影响构建。项目在 `frontend/pnpm-workspace.yaml` 里用 `peerDependencyRules.allowAny` 抑制了这条噪音。
+
+## CI 与自动发布
+
+- **CI**（`.github/workflows/ci.yml`）：PR / push 到 `main` 时运行前端 `vp check`、`vp test run`、`vp build`，以及 Go `test` / `vet`；macOS job 会实际构建 universal `.app` 并上传 artifact。
+- **Release**（`.github/workflows/release.yml`）：当 `main` 上的 Go / 前端 / 打包相关代码发生变化时自动执行：
+  1. 把 `VERSION` 的 patch 位 +1（`1.0.0` → `1.0.1`，即 +0.01）；
+  2. 构建 arm64 + x86_64 的 universal app；
+  3. 提交版本变更并打 `vX.Y.Z` tag；
+  4. 创建 GitHub Release，附带 `PicPress-X.Y.Z-macOS-universal.zip`。
+
+版本源是根目录的 `VERSION`；`scripts/bump-version.py` 同时同步 `build/darwin/Info.plist`。只改 README / docs，或 release 自己产生的版本提交，不会再次触发 release。
+
+## 前端结构
+
+```
+frontend/
+├── src/
+│   ├── App.tsx                 # 应用壳、事件桥
+│   ├── components/             # Dropzone / ItemCard / Settings / Summary / Compare / Toasts
+│   ├── domain/                 # 类型、格式化、会话合并、设置 Schema
+│   ├── hooks/                  # useSession、useRuntimeEvents、useToast
+│   ├── services/wails.ts       # Effect 包装的 Wails 调用
+│   ├── state/atoms.ts          # Atom 状态与派生 summary
+│   ├── styles/style.css
+│   └── bindings/               # Wails 生成的 TS 绑定（已提交）
+├── vite.config.ts
+├── tsconfig.json
+└── package.json
+```
+
+设计上把“状态”和“副作用”分开：
+
+- **Atom** 管理会话、设置、压缩状态、进度、对比弹窗和 toast；`summaryAtom` 是派生值。
+- **Effect** 只出现在 Wails 调用边界（`services/wails.ts`），负责类型化错误；React 组件保持普通函数组件。
+- **Go 仍是唯一真相**：压缩、文件写入、会话和临时文件都在 Go 侧；前端只做编排与渲染。
+
+## 重新生成前端绑定
+
+服务方法或模型变化后：
+
+```bash
+wails3 generate bindings -ts -i -d frontend/src/bindings -clean
+```
+
+- `-ts`：生成 TypeScript。
+- `-i`：生成 interface，而不是 class，方便直接传普通对象。
+- 生成文件 import `@wailsio/runtime`，因此前端需要在 `package.json` 中保留同版本的 `@wailsio/runtime`。
 
 ## 打包说明
 
@@ -53,6 +121,7 @@ make test
 - 构建默认使用 `-tags production,nodynamic`：
   - `production` 使用 Wails 的生产运行时；
   - `nodynamic` 让 WebP / AVIF / HEIC 走纯 Go 的 WASM 编解码器，不依赖 Homebrew 安装的 `libwebp` 等动态库，便于打包分发。
+- `frontend/dist/` 是构建产物，已被 `.gitignore` 忽略；只保留一个 `.gitkeep` 供全新 clone 时 `go:embed` 使用。
 
 ## 支持的格式
 
@@ -66,35 +135,15 @@ make test
 - 重新编码会移除 EXIF / ICC 等元数据，这也是压缩的一部分；EXIF 方向会在编码前应用到像素上。
 - AVIF 编码较慢（大图可能需要几秒），适合追求极限体积时使用。
 
-## 项目结构
+## 实现要点
 
-```
-.
-├── main.go                     # Wails 应用、窗口、原生拖拽、菜单
-├── appservice.go               # 绑定给前端的会话/压缩/保存服务
-├── internal/imagepress/        # 解码、EXIF 方向、缩放、编码、预览
-├── frontend/                   # 原生 ES Module 前端（无构建步骤）
-│   ├── index.html
-│   ├── style.css
-│   ├── app.js
-│   └── bindings/               # Wails 生成的 JS 绑定（已提交）
-├── build/                      # macOS 图标与 Info.plist
-├── scripts/gen-icon.go         # 生成 build/appicon.png
-├── Makefile
-└── Taskfile.yml
-```
+- **Wails v3** 提供原生窗口、`⌘` 菜单、系统文件对话框与文件拖放。拖放需要窗口开启 `EnableFileDrop`，并且前端注册 `data-file-drop-target` 区域；本项目把整个工作区作为放置目标。
+- **压缩流水线**：解码 → EXIF 旋转 → 缩放（Lanczos）→ 多格式编码择优 → 生成预览。预览会重新解码压缩结果，确保对比看到的是真实画质。
+- **自动重压**：设置变化后 320ms 防抖重压；压缩进行中再次变化会标记 dirty，当前批次结束后自动补跑，避免旧结果覆盖新设置。
+- **编码器**：JPEG/PNG 使用标准库；WebP、AVIF、HEIC 使用 `gen2brain` 系列纯 Go（WASM）编解码器，无 CGO 依赖。
+- **会话管理**：Go 侧维护图片会话、临时输出和去重；前端只负责状态渲染与交互。所有压缩结果先写入系统临时目录，退出时清理。
 
-### 重新生成前端绑定
-
-服务方法或模型发生变化后：
-
-```bash
-wails3 generate bindings -b -d frontend/bindings -clean
-```
-
-`-b` 让绑定直接导入 `/wails/runtime.js`，因此前端不需要 npm 依赖。
-
-### 重新生成图标
+## 重新生成图标
 
 ```bash
 go run scripts/gen-icon.go
@@ -102,13 +151,6 @@ wails3 generate icons -input build/appicon.png \
   -macfilename build/darwin/icons.icns \
   -windowsfilename build/windows/icon.ico
 ```
-
-## 实现要点
-
-- **Wails v3** 提供原生窗口、`⌘` 菜单、系统文件对话框与文件拖放。拖放需要窗口开启 `EnableFileDrop`，并且前端注册 `data-file-drop-target` 区域；本项目把整个工作区作为放置目标。
-- **压缩流水线**：解码 → EXIF 旋转 → 缩放（Lanczos）→ 多格式编码择优 → 生成预览。预览会重新解码压缩结果，确保对比看到的是真实画质。
-- **编码器**：JPEG/PNG 使用标准库；WebP、AVIF、HEIC 使用 `gen2brain` 系列纯 Go（WASM）编解码器，无 CGO 依赖。
-- **会话管理**：Go 侧维护图片会话、临时输出和去重；前端只负责状态渲染与交互。所有压缩结果先写入系统临时目录，退出时清理。
 
 ## License
 
