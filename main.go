@@ -5,9 +5,12 @@ import (
 	"io/fs"
 	"log"
 	"runtime"
+	"strings"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
+
+	"picpress/internal/push"
 )
 
 // The Vite build output is embedded into the binary. During development
@@ -23,13 +26,16 @@ func main() {
 	}
 
 	service := NewAppService()
+	pushService := NewPushService()
 
 	app := application.New(application.Options{
 		Name:        "PicPress",
 		Description: "拖进来，就变小",
 		Services: []application.Service{
 			application.NewService(service),
+			application.NewService(pushService),
 		},
+		FileAssociations: []string{push.ConfigExt},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(frontend),
 		},
@@ -38,6 +44,14 @@ func main() {
 		},
 	})
 	service.attach(app)
+	pushService.attach(app)
+
+	// Double-clicking a .picpress-config (file association) opens it here.
+	app.Event.OnApplicationEvent(events.Common.ApplicationOpenedWithFile, func(event *application.ApplicationEvent) {
+		if name := event.Context().Filename(); strings.HasSuffix(strings.ToLower(name), push.ConfigExt) {
+			_, _ = pushService.ImportConfig(name)
+		}
+	})
 
 	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "PicPress",
@@ -55,26 +69,48 @@ func main() {
 		},
 	})
 
-	// The native drag & drop API gives us real file paths. The frontend is
-	// asked to register them so the UI stays the single source of truth.
+	// The native drag & drop API gives us real file paths. A dropped config is
+	// imported; with an active connection the rest goes to the push prepare
+	// panel; otherwise the frontend adds them to the local compress session.
 	window.OnWindowEvent(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
-		files := event.Context().DroppedFiles()
+		var configs, files []string
+		for _, f := range event.Context().DroppedFiles() {
+			if strings.HasSuffix(strings.ToLower(f), push.ConfigExt) {
+				configs = append(configs, f)
+			} else {
+				files = append(files, f)
+			}
+		}
+		if len(configs) > 0 {
+			if _, err := pushService.ImportConfig(configs[len(configs)-1]); err != nil {
+				app.Event.Emit("push:error", err.Error())
+			}
+		}
 		if len(files) == 0 {
+			return
+		}
+		if pushService.HasConnection() {
+			if _, err := pushService.Prepare(files); err != nil {
+				app.Event.Emit("push:error", err.Error())
+			}
 			return
 		}
 		app.Event.Emit("files-dropped", files)
 	})
 
-	app.OnShutdown(service.Cleanup)
+	app.OnShutdown(func() {
+		pushService.shutdown()
+		service.Cleanup()
+	})
 
-	setupMenu(app)
+	setupMenu(app, pushService)
 
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func setupMenu(app *application.App) {
+func setupMenu(app *application.App, pushService *PushService) {
 	menu := app.NewMenu()
 	if runtime.GOOS == "darwin" {
 		menu.AddRole(application.AppMenu)
@@ -90,6 +126,15 @@ func setupMenu(app *application.App) {
 		SetAccelerator("CmdOrCtrl+S").
 		OnClick(func(*application.Context) {
 			app.Event.Emit("menu:save-all")
+		})
+	fileMenu.Add("导入配置…").
+		SetAccelerator("CmdOrCtrl+I").
+		OnClick(func(*application.Context) {
+			go func() {
+				if _, err := pushService.PickConfig(); err != nil {
+					app.Event.Emit("push:error", err.Error())
+				}
+			}()
 		})
 	fileMenu.AddSeparator()
 	fileMenu.Add("清空列表").

@@ -56,6 +56,9 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Releasing v${VERSION}"
 
+      - name: Install nasm (bundled ffmpeg, x86_64)
+        run: brew install nasm
+
       - name: Build universal app
         run: make app-universal
 
@@ -80,5 +83,7 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: PicPress v${{ steps.version.outputs.version }}
-          files: PicPress-${{ steps.version.outputs.version }}-macOS-universal.zip
+          files: |
+            PicPress-${{ steps.version.outputs.version }}-macOS-universal.zip
+            .bin/ffmpeg-*/ffmpeg-*.tar.xz
           generate_release_notes: true

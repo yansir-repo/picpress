@@ -124,6 +124,26 @@ func (o Options) Normalized() Options {
 	return o
 }
 
+// Params is the canonical identity of the settings: equal Params produce
+// equal output for equal input. The push journal uses it for dedup.
+func (o Options) Params() string {
+	o = o.Normalized()
+	s := fmt.Sprintf("fmt=%s;q=%d", o.Format, o.Quality)
+	switch o.ResizeMode {
+	case ResizeLongEdge:
+		s += fmt.Sprintf(";max=%d", o.MaxLongEdge)
+	case ResizePercent:
+		s += fmt.Sprintf(";pct=%d", o.Percent)
+	}
+	return s + ";bg=" + strings.ToLower(o.Background)
+}
+
+// TextPreset suits images with fine text (certificates, spec sheets): no
+// resizing, near-lossless WebP.
+func TextPreset() Options {
+	return Options{Format: FormatWebP, Quality: 95, ResizeMode: ResizeNone}.Normalized()
+}
+
 // BackgroundColor parses the background colour used when flattening
 // transparent images for formats without an alpha channel.
 func (o Options) BackgroundColor() (uint8, uint8, uint8) {

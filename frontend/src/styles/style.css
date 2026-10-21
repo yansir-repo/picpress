@@ -1674,3 +1674,283 @@ svg {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- Push upload ---------- */
+
+.push-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(240, 90, 42, 0.14);
+}
+
+.push-pill-btn {
+  cursor: pointer;
+  color: var(--accent-deep);
+  background: var(--accent-soft);
+  border-color: rgba(240, 90, 42, 0.25);
+}
+
+.push-card {
+  width: min(640px, 94vw);
+  gap: 12px;
+}
+
+.push-card--narrow {
+  width: min(440px, 94vw);
+}
+
+.push-notice {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  user-select: text;
+}
+
+.push-facts {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-soft);
+}
+
+.push-facts li + li {
+  margin-top: 4px;
+}
+
+.push-facts .is-warn {
+  color: var(--amber);
+}
+
+.push-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 6px;
+}
+
+.push-primary {
+  width: auto;
+  padding: 0 16px;
+}
+
+.push-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.push-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+
+.push-stat span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.push-stat b {
+  font-size: 20px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.push-stat small {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.push-total {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.push-alert {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.push-alert.is-error {
+  color: var(--red);
+  background: #fdecea;
+}
+
+.push-alert.is-warn {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
+.push-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.push-preset {
+  margin: 0;
+}
+
+.push-disclosure {
+  align-self: flex-start;
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  font-size: 11.5px;
+  color: var(--accent-deep);
+  cursor: pointer;
+}
+
+.push-skips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.push-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.push-list li,
+.push-roots li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+}
+
+.push-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.push-path {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: text;
+}
+
+.push-reason {
+  flex: none;
+  color: var(--muted);
+}
+
+.push-files .is-uploaded .push-reason {
+  color: var(--green);
+}
+
+.push-files .is-failed .push-reason {
+  color: var(--red);
+}
+
+.push-files .is-uploading .push-reason {
+  color: var(--accent-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+.push-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.push-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s var(--ease);
+}
+
+.push-roots {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ink-soft);
+}
+
+.push-summary {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--green-soft);
+  color: var(--green);
+  user-select: text;
+}
+
+.push-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.push-conn {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 8px;
+  margin-bottom: 8px;
+}
+
+.push-conn span {
+  grid-column: 1;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.push-conn .reset-btn {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.push-import {
+  width: 100%;
+  justify-content: center;
+}
+
+.push-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.push-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.push-form .number-input {
+  width: 100%;
+  font-weight: 450;
+}
+
+.push-about {
+  margin: 4px 0 0;
+  font-size: 10.5px;
+  color: var(--muted-2);
+  user-select: text;
+}

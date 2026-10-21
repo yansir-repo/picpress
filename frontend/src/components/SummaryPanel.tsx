@@ -9,9 +9,16 @@ interface SummaryPanelProps {
   compressing: boolean;
   saving: boolean;
   onSaveAll: () => void;
+  pushConnected: boolean;
 }
 
-export function SummaryPanel({ summary, compressing, saving, onSaveAll }: SummaryPanelProps) {
+export function SummaryPanel({
+  summary,
+  compressing,
+  saving,
+  onSaveAll,
+  pushConnected,
+}: SummaryPanelProps) {
   const hasItems = summary.count > 0;
   const hasResults = summary.resultCount > 0;
   const [value, unit] = bytesParts(Math.abs(summary.saved));
@@ -84,7 +91,11 @@ export function SummaryPanel({ summary, compressing, saving, onSaveAll }: Summar
         <DownloadIcon />
         {saving ? "正在保存…" : compressing ? "压缩中…" : "保存全部"}
       </button>
-      <p className="summary-foot">图片只在本机处理，不会上传到任何服务器</p>
+      <p className="summary-foot">
+        {pushConnected
+          ? "这里的图片只在本机处理；只有在「准备上传」里确认的文件才会上传"
+          : "图片只在本机处理，不会上传到任何服务器"}
+      </p>
     </div>
   );
 }

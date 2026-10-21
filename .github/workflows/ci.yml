@@ -74,6 +74,9 @@ jobs:
       - name: Go vet
         run: go vet ./...
 
+      - name: Install nasm (bundled ffmpeg, x86_64)
+        run: brew install nasm
+
       - name: Build universal app bundle
         run: make app-universal
 

@@ -13,8 +13,18 @@
 - **批量处理**：一次添加多张，卡片展示原图尺寸、压缩后尺寸、体积变化和节省比例。
 - **压缩前后对比**：内置滑块对比，直观看到画质差异。
 - **保存灵活**：单张另存为，或一键保存全部到指定文件夹。
-- **全程本地**：不上传、不联网，图片只在本机内存和临时目录中处理。
+- **默认全程本地**：不上传、不联网，图片只在本机内存和临时目录中处理。只有导入「推送配置」并在确认面板里点了确认，才会把你拖进来的文件压缩后推送到配置指定的云端地址（见下方「推送上传」）。
 - **细节处理**：读取 EXIF 方向自动旋转、JPEG 透明背景填充、剥离元数据、防止误放大。
+
+## 推送上传（开发中）
+
+给「要向别人收文件」的场景：收到一份 `.picpress-config` 配置文件，双击导入，把文件夹拖进来，PicPress 在本机压缩后按你的文件夹路径推到云端；断网重开会接着传，传过的不会重复；视频不传原片，只传抽帧。PicPress 不认识任何项目或资料清单，只是通用的「压缩并推送」工具。
+
+需求、配置格式、凭证接口、批次清单格式和验收清单见 [`docs/push-upload.md`](docs/push-upload.md)，实现现状见其中 §10。
+
+- 代码：`internal/push`（扫描、键名规整、SigV4、只写 S3 客户端、凭证、journal、上传引擎、批次清单），`pushservice.go`（绑定给前端的服务）。
+- 本地联调：`go run ./cmd/push-devserver -dir /tmp/picpress-inbox` 启动一个拒绝一切读操作的假 S3 和凭证接口，并生成 `dev.picpress-config`，拖到 PicPress 上即可导入；收到的对象写在 `-dir/objects/` 下。加 `-ttl 30s` 可以验证凭证自动续期。
+- 视频抽帧用 `ffmpeg` / `ffprobe` 子进程：先找可执行文件旁边（`.app` 里是 `Contents/Resources/`，`make app` 会内置一份，离线可用，见[打包说明](#打包说明)），再找 `PATH`；都没有时视频会如实列为「跳过」。
 
 ## 界面快捷键
 
@@ -22,6 +32,7 @@
 | --- | --- |
 | `⌘O` | 打开图片 |
 | `⌘S` | 保存全部 |
+| `⌘I` | 导入推送配置 |
 | `⌘K` | 清空列表 |
 | `Esc` | 关闭对比弹窗 |
 
@@ -37,7 +48,7 @@
 
 ## 构建与运行
 
-要求：macOS 12+、Go 1.26+、Node 24+、pnpm 12+、Xcode Command Line Tools。
+要求：macOS 12+、Go 1.26+、Node 24+、pnpm 12+、Xcode Command Line Tools；打包 x86_64（含 universal）还需要 `nasm`（`brew install nasm`，用于编译内置 ffmpeg 的汇编）。
 
 ```bash
 # 安装前端依赖
@@ -108,6 +119,8 @@ frontend/
 
 ```bash
 wails3 generate bindings -ts -i -d frontend/src/bindings -clean
+# 没装 wails3 时：
+go run github.com/wailsapp/wails/v3/cmd/wails3 generate bindings -ts -i -d frontend/src/bindings -clean
 ```
 
 - `-ts`：生成 TypeScript。
@@ -117,7 +130,11 @@ wails3 generate bindings -ts -i -d frontend/src/bindings -clean
 ## 打包说明
 
 - `make app` 会生成 `bin/PicPress.app`，拷贝 `build/darwin/Info.plist` 和 `icons.icns`，并使用 `codesign --sign -` 做 ad-hoc 签名。
-- 面向其他 Mac 分发时，请使用自己的 Developer ID 重新签名并 notarize；否则 Gatekeeper 会提示未验证的开发者。
+- 面向其他 Mac 分发时，请使用自己的 Developer ID 重新签名并 notarize；否则 Gatekeeper 会提示未验证的开发者。`Contents/Resources/` 里的 `ffmpeg` / `ffprobe` 也要单独签名（`make bundle` 里已经先签它们，再签整个 app）。
+- **内置 ffmpeg**：`make bundle` 用 `scripts/build-ffmpeg.sh` 从官方源码编译 `ffmpeg` / `ffprobe`，按 `bin/picpress` 实际包含的架构（`lipo -archs`）合成后放进 `Contents/Resources/`，连同 `FFmpeg-COPYING.LGPLv2.1`。
+  - 版本和源码包 SHA-256 固定在 `Makefile`（`FFMPEG_VERSION` / `FFMPEG_SHA256`）；SHA-256 取自用 FFmpeg 发布签名（`FCF986EA15E6E293A5644F10B4322F04D67658D8`）验过的源码包。最低系统版本取自 `Info.plist` 的 `LSMinimumSystemVersion`。
+  - 只开抽帧需要的组件：解封装 mov / avi / matroska / mpegts（覆盖 mp4、mov、m4v、avi、mkv、webm、mts），解码 H.264、HEVC、MPEG-1/2/4、H.263、MS-MPEG4、VC-1/WMV3、VP8、VP9、ProRes、MJPEG、DV、rawvideo，输出 PNG；静态链接，只依赖系统库（`libz` 和 CoreFoundation / CoreVideo / CoreMedia），不联网、不用 VideoToolbox。AV1 不支持（需要额外的 libdav1d），这类视频会抽帧失败、记为解码失败。
+  - 编译结果缓存在 `.bin/ffmpeg-<版本>/<arch>/`，改了版本或脚本才会重新编译（每个架构约 1 分钟）。体积：每个架构 `ffmpeg` + `ffprobe` 约 13 MB，universal `.app` 约 65 MB（zip 约 29 MB）。
 - 构建默认使用 `-tags production,nodynamic`：
   - `production` 使用 Wails 的生产运行时；
   - `nodynamic` 让 WebP / AVIF / HEIC 走纯 Go 的 WASM 编解码器，不依赖 Homebrew 安装的 `libwebp` 等动态库，便于打包分发。
@@ -155,3 +172,11 @@ wails3 generate icons -input build/appicon.png \
 ## License
 
 仅用于学习与个人使用。
+
+### 第三方：FFmpeg
+
+`.app` 内置的 `ffmpeg` / `ffprobe`（`Contents/Resources/`）来自 [FFmpeg](https://ffmpeg.org/) 9.0.2，许可证为 **GNU LGPL 2.1 或更新版本**，全文随 app 附在 `Contents/Resources/FFmpeg-COPYING.LGPLv2.1`。编译时没有启用 `--enable-gpl`、`--enable-version3`、`--enable-nonfree`，也没有链接任何外部库（`--disable-autodetect`），脚本会在 `config.h` 里核对这一点，不满足就停止构建。PicPress 只把它们当独立程序以子进程调用，不链接 FFmpeg 的库。
+
+- 源码：<https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz>（SHA-256 `8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e`，签名 `ffmpeg-9.0.2.tar.xz.asc`）；每个 GitHub Release 也附带同一份源码包。
+- 构建方式：未修改源码，配置参数见 `scripts/build-ffmpeg.sh`，也可以用 `Contents/Resources/ffmpeg -version` 查看。
+- 替换：LGPL 允许你换成自己编译的版本，直接替换 `Contents/Resources/` 里的 `ffmpeg` / `ffprobe` 后重新签名即可。
